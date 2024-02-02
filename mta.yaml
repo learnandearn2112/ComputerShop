@@ -1,0 +1,40 @@
+_schema-version: "3.1"
+ID: ComputerShop
+description: A simple CAP project.
+version: 1.0.0
+modules:
+- name: ComputerShop-srv
+  type: nodejs
+  path: gen/srv
+  requires:
+  - name: MyHanaDB2
+  provides:
+  - name: srv-api
+    properties:
+      srv-url: ${default-url}
+  parameters:
+    buildpack: nodejs_buildpack
+  build-parameters:
+    builder: npm-ci
+- name: ComputerShop-db-deployer
+  type: hdb
+  path: gen/db
+  requires:
+  - name: MyHanaDB2
+  parameters:
+    buildpack: nodejs_buildpack
+
+resources:
+- name: MyHanaDB2
+  type: org.cloudfoundry.existing-service
+  parameters:
+    service: hana
+    service-plan: hdi-shared
+
+parameters:
+  enable-parallel-deployments: true
+build-parameters:
+  before-all:
+  - builder: custom
+    commands:
+    - npx -p @sap/cds-dk cds build --production
